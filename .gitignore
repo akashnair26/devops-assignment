@@ -1,0 +1,17 @@
+# Node
+app/node_modules/
+app/npm-debug.log*
+
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/*.tfplan
+terraform/crash.log
+
+# Helm
+helm/**/charts/
+helm/**/*.tgz
+
+# OS
+.DS_Store
