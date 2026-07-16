@@ -1,0 +1,58 @@
+replicaCount: 2
+
+image:
+  repository: 637423654741.dkr.ecr.ap-south-1.amazonaws.com/hello-world-service
+  tag: "v2"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 3000
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 128Mi
+
+healthCheckPath: /healthz
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  runAsGroup: 1001
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true
+  capabilities:
+    drop: ["ALL"]
+
+serviceAccount:
+  create: true
+  name: ""
+
+serviceMonitor:
+  enabled: true
+  namespace: ""
+  interval: 30s
+  labels: {}
+
+grafanaDashboard:
+  enabled: true
+
+nodeSelector:
+  role: app
+
+tolerations: []
+
+
+podAntiAffinity:
+  enabled: true
+
+affinity: {}
