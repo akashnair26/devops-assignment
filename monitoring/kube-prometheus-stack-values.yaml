@@ -1,0 +1,106 @@
+# Install with:
+#   helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+#   helm repo update
+#   helm install kube-prometheus-stack prometheus-community/kube-prometheus-stack \
+#     -n monitoring --create-namespace \
+#     -f monitoring/kube-prometheus-stack-values.yaml
+
+#   kubectl port-forward -n monitoring svc/kube-prometheus-stack-grafana 3000:80
+
+# everything below except prometheus-node-exporter is pinned to the
+# dedicated monitoring-nodes pool (terraform/eks.tf) via its taint/label --
+# node-exporter stays untainted-schedulable so it still runs on app-nodes too
+
+prometheus:
+  prometheusSpec:
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    retention: 6h
+    resources:
+      requests:
+        cpu: 100m
+        memory: 512Mi
+      limits:
+        cpu: 500m
+        memory: 1Gi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: gp3
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 20Gi
+    nodeSelector:
+      role: monitoring
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: monitoring
+        effect: NoSchedule
+
+alertmanager:
+  alertmanagerSpec:
+    resources:
+      requests:
+        cpu: 25m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
+    nodeSelector:
+      role: monitoring
+    tolerations:
+      - key: dedicated
+        operator: Equal
+        value: monitoring
+        effect: NoSchedule
+
+grafana:
+  defaultDashboardsEnabled: true
+  sidecar:
+    dashboards:
+      enabled: true
+      searchNamespace: ALL
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  nodeSelector:
+    role: monitoring
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: monitoring
+      effect: NoSchedule
+
+nodeExporter:
+  enabled: true
+
+# node-exporter is a DaemonSet and needs to run on every node (including
+# app-nodes) to report their hardware metrics too -- so it tolerates the
+# monitoring taint without a nodeSelector pinning it to that pool only
+prometheus-node-exporter:
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: monitoring
+      effect: NoSchedule
+
+kubeStateMetrics:
+  enabled: true
+
+kube-state-metrics:
+  nodeSelector:
+    role: monitoring
+  tolerations:
+    - key: dedicated
+      operator: Equal
+      value: monitoring
+      effect: NoSchedule
