@@ -14,12 +14,12 @@ Helm 3 - Installing the app and monitoring stack
 
 ## Repository layout
 
-app/                Hello World Node.js microservice (Express-free, native HTTP + prom-client)
+```text
+app/                Hello World Node.js microservice (native HTTP + prom-client)
 terraform/          VPC + EKS + ECR
 helm/hello-world/   Helm chart for the app (Deployment, Service, ServiceMonitor, Grafana dashboard)
 monitoring/         kube-prometheus-stack
-
-Each directory has its own README with specifics. This one covers the end-to-end picture.
+```
 
 ## Running it end-to-end
 
